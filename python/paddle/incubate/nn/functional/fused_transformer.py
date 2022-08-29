@@ -681,6 +681,7 @@ def fused_multi_transformer(x,
                             training=False,
                             mode='upscale_in_train',
                             trans_qkvw=True,
+                            t5_layer_norm=False,
                             ring_id=-1,
                             name=None):
     r"""
@@ -737,6 +738,7 @@ def fused_multi_transformer(x,
         ffn2_weights (list(Tensor)|tuple(Tensor)): The weight tensors of feedforward second linear, the shape is `[dim\_feedforward, d\_model]`.
         ffn2_biases (list(Tensor)|tuple(Tensor)|None): The bias tensors of feedforward second linear, the shape is `[d_model]`.
         pre_layer_norm (bool, optional): whether it is pre_layer_norm(True) or post_layer_norm(False). Default True.
+        t5_layer_norm (bool, optional): whether the layer norm is used in T5 module. Default False.
         epsilon (float, optional): Small float value added to denominator of the layer_norm to avoid dividing by zero. Default is 1e-5.
         cache_kvs (list(Tensor)|tuple(Tensor), optional): The cache structure tensors for the generation model. The shape is `[2, bsz, num\_head, max\_seq\_len, head\_dim]`. Default None.
         time_step (Tensor, optional): The time step tensor for the generation model. Which used in decode stage, to represent the time step, that is, the real seq_len of CacheKV. The shape is `[1]`, must be in CPUPlace. Default None.
@@ -831,7 +833,7 @@ def fused_multi_transformer(x,
             cache_kvs, 'pre_layer_norm', pre_layer_norm, 'epsilon', epsilon,
             'dropout_rate', dropout_rate, 'is_test', not training,
             'dropout_implementation', mode, 'act_method', activation,
-            'trans_qkvw', trans_qkvw, 'ring_id', ring_id)
+            'trans_qkvw', trans_qkvw, 'ring_id', ring_id, 't5_layer_norm', t5_layer_norm)
         if cache_kvs is not None:
             return final_out, cache_kv_out
         return final_out
@@ -880,7 +882,8 @@ def fused_multi_transformer(x,
             'dropout_implementation': mode,
             'act_method': activation,
             'trans_qkvw': trans_qkvw,
-            'ring_id': ring_id
+            'ring_id': ring_id,
+            't5_layer_norm': t5_layer_norm
         }
 
         outputs = dict()
