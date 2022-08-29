@@ -1175,11 +1175,12 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
 
     // 1. layer norm
     const auto pre_layer_norm = ctx.Attr<bool>("pre_layer_norm");
+    const auto t5_layer_norm = ctx.Attr<bool>("t5_layer_norm");
     const float epsilon = ctx.Attr<float>("epsilon");
     auto ln_scales = ctx.MultiInput<Tensor>("LnScale");
     auto ln_biases = ctx.MultiInput<Tensor>("LnBias");
 
-    auto ln_compute = AttnLayerNorm<T>(dev_ctx, epsilon, bsz_seq, dim_embed);
+    auto ln_compute = AttnLayerNorm<T>(dev_ctx, epsilon, bsz_seq, dim_embed, t5_layer_norm);
     Tensor ln_mean, ln_var;
     auto *ln_mean_data = ln_mean.mutable_data<U>({bsz_seq}, place);
     auto *ln_var_data = ln_var.mutable_data<U>({bsz_seq}, place);

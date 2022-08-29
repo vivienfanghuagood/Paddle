@@ -15,6 +15,7 @@ limitations under the License. */
 #pragma once
 
 #include "paddle/fluid/operators/layer_norm_kernel.cu.h"
+#include <stdio.h>
 
 namespace paddle {
 namespace operators {
@@ -25,11 +26,13 @@ class AttnLayerNorm {
   AttnLayerNorm(const phi::GPUContext& dev_ctx,
                 float epsilon,
                 int64_t batch_size,
-                int64_t feature_size)
+                int64_t feature_size,
+                bool is_t5_mode = false)
       : dev_ctx_(dev_ctx),
         epsilon_(epsilon),
         batch_size_(batch_size),
-        feature_size_(feature_size) {}
+        feature_size_(feature_size), 
+        is_t5_mode(is_t5_mode) {}
 
   ~AttnLayerNorm() {}
 
@@ -40,6 +43,26 @@ class AttnLayerNorm {
                       LayerNormParamType<T>* mean_data,
                       LayerNormParamType<T>* var_data) {
     auto stream = dev_ctx_.stream();
+
+    if(is_t5_mode){
+      printf("[dddd] run in t5 layernorm!\n");
+      switch (GetDesiredBlockDim(feature_size_)) {
+        FIXED_BLOCK_DIM_CASE(
+            LayerNormForwardT5<T, LayerNormParamType<T>, kBlockDim>
+            <<<batch_size_, kBlockDim, 0, stream>>>(x_data,
+                                                    scale_data,
+                                                    bias_data,
+                                                    y_data,
+                                                    mean_data,
+                                                    var_data,
+                                                    epsilon_,
+                                                    feature_size_));
+        default:
+          PADDLE_THROW(platform::errors::InvalidArgument(
+              "Feature_size must be larger than 1"));
+          break;
+    }
+    }
 
     switch (GetDesiredBlockDim(feature_size_)) {
       FIXED_BLOCK_DIM_CASE(
@@ -86,6 +109,8 @@ class AttnLayerNorm {
 
   int64_t batch_size_;
   int64_t feature_size_;
+
+  bool is_t5_mode;
 
   float epsilon_;
 };

@@ -414,6 +414,47 @@ __global__ void LayerNormForward(
   }
 }
 
+template <typename T,
+          typename U,
+          int BlockDim>
+__global__ void LayerNormForwardT5(
+    const T *x,
+    T *y,
+    U *mean,
+    U *var,
+    float epsilon,
+    int64_t feature_size) {
+  __shared__ U var_share;
+  __shared__ U shared_var[32];
+
+  int64_t beg_idx = blockIdx.x * feature_size + threadIdx.x;
+  int64_t end_idx = (blockIdx.x + 1) * feature_size;
+
+  // Step 1: Reduce to calculate mean and var
+  U mean_val = 0;
+  U var_val = 0;
+  for (int64_t i = beg_idx; i < end_idx; i += BlockDim) {
+    U tmp = static_cast<U>(x[i]);
+    var_val += (tmp * tmp);
+  }
+  
+  var_val = BlockReduceSum<U>(var_val, shared_var);
+
+  if (threadIdx.x == 0) {
+    var_share = var_share > U(0) ? var_share : U(0);
+    var[blockIdx.x] = var_share;
+  }
+  __syncthreads();
+
+  U invvar = rsqrt_<U>(var_share + static_cast<U>(epsilon));
+
+  // Step 2: Calculate y
+  for (int64_t i = beg_idx, j = threadIdx.x; i < end_idx; i += BlockDim, j += BlockDim) {
+    y[i] = static_cast<T>(static_cast<U>(x[i]) * invvar);
+  }
+}
+
+
 template <typename T, typename U, int VPT>
 __inline__ __device__ void cuLoadAddStridedInputs(const int64_t i1_block,
                                                   const int thr_load_row_off,

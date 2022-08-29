@@ -234,6 +234,11 @@ class FusedMultiTransformerOpOpMaker
                   "else, uses post_layer_norm architecuture. "
                   "[default true].")
         .SetDefault(true);
+    AddAttr<bool>("t5_layer_norm",
+                  "if true, layer norm will calc in t5 mode [http://gitlab.baidu.com/duanboqiang/T5-inference/blob/master/models/modeling_t5.py#L61]"
+                  "else, in normal mode."
+                  "[default false].")
+        .SetDefault(false);
     AddAttr<float>("epsilon",
                    "Constant for numerical stability [default 1e-5].")
         .SetDefault(1e-5)
