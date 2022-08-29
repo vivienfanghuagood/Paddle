@@ -50,10 +50,7 @@ class AttnLayerNorm {
         FIXED_BLOCK_DIM_CASE(
             LayerNormForwardT5<T, LayerNormParamType<T>, kBlockDim>
             <<<batch_size_, kBlockDim, 0, stream>>>(x_data,
-                                                    scale_data,
-                                                    bias_data,
                                                     y_data,
-                                                    mean_data,
                                                     var_data,
                                                     epsilon_,
                                                     feature_size_));

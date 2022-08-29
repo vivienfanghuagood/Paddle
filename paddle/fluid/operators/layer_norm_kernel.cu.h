@@ -420,7 +420,6 @@ template <typename T,
 __global__ void LayerNormForwardT5(
     const T *x,
     T *y,
-    U *mean,
     U *var,
     float epsilon,
     int64_t feature_size) {
