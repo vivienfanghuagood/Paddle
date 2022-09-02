@@ -440,6 +440,8 @@ __global__ void LayerNormForwardT5(
   var_val = BlockReduceSum<U>(var_val, shared_var);
 
   if (threadIdx.x == 0) {
+    auto scale = static_cast<float>(1.) / static_cast<float>(feature_size);
+    var_share = static_cast<U>(var_val * scale);
     var_share = var_share > U(0) ? var_share : U(0);
     var[blockIdx.x] = var_share;
   }
@@ -451,6 +453,12 @@ __global__ void LayerNormForwardT5(
   for (int64_t i = beg_idx, j = threadIdx.x; i < end_idx; i += BlockDim, j += BlockDim) {
     y[i] = static_cast<T>(static_cast<U>(x[i]) * invvar);
   }
+
+#ifdef DEBUG_T5
+  if(blockIdx.x == 0 && threadIdx.x == 0){
+    printf("[t5 debug] block_dim is %d, var_sum is %f, var is %f, norm: %f, invvar: %f\n", BlockDim, var_val, var[0], y[0], invvar);
+  }
+#endif
 }
 
 

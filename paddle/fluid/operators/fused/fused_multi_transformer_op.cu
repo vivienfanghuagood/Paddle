@@ -38,6 +38,9 @@ limitations under the License. */
 #include "paddle/fluid/platform/device/gpu/nccl_helper.h"
 #endif
 
+#include <thrust/device_vector.h>
+#include <thrust/functional.h>
+#include <thrust/transform.h>
 namespace paddle {
 namespace operators {
 
@@ -1180,6 +1183,7 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
     auto ln_scales = ctx.MultiInput<Tensor>("LnScale");
     auto ln_biases = ctx.MultiInput<Tensor>("LnBias");
 
+
     auto ln_compute = AttnLayerNorm<T>(dev_ctx, epsilon, bsz_seq, dim_embed, t5_layer_norm);
     Tensor ln_mean, ln_var;
     auto *ln_mean_data = ln_mean.mutable_data<U>({bsz_seq}, place);
@@ -1352,6 +1356,21 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
       buf1 = out;
     }
 
+#ifdef _DEBUG_FUSED_MULTI_TRANSFORMER
+    auto log_file = [](std::string path, const Tensor &data) {
+      // std::ofstream ss(path);
+      const int size = 10;
+      float host[size];
+      cudaMemcpy(
+          host, data.data<T>(), sizeof(float) * size, cudaMemcpyDeviceToHost);
+      printf("%s ", path.c_str());
+      for (int i = 0; i < size; ++i) {
+        printf("%f ", host[i]);
+      }
+      printf("\n");
+    };
+#endif
+
     for (int i = 0; i < layers; ++i) {
       // step1. layer_norm
       if (i == 0 && pre_layer_norm) {
@@ -1365,6 +1384,7 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
                                   ln_mean_data,
                                   ln_var_data);
       }
+
 #ifdef _DEBUG_FUSED_MULTI_TRANSFORMER
       VLOG(0) << "step1";
 #endif
@@ -1380,6 +1400,7 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
         qkv_compute.ComputeForward(
             qkv_weights[i], buf1, bias, &qkv_out, &qkv_out);
       }
+
 #ifdef _DEBUG_FUSED_MULTI_TRANSFORMER
       VLOG(0) << "step2";
 #endif
@@ -1458,6 +1479,7 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
                                     &qktv_out,
                                     &fmha_out);
       }
+
 #ifdef _DEBUG_FUSED_MULTI_TRANSFORMER
       VLOG(0) << "step3";
 #endif
@@ -1471,47 +1493,67 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
             out_linear_weights[i], &fmha_out, nullptr, buf0, nullptr);
         AllReduce<T>(*buf0, ring_id, dev_ctx);
       }
+
 #ifdef _DEBUG_FUSED_MULTI_TRANSFORMER
       VLOG(0) << "step4";
 #endif
 
-      // step5. ln(residual + dropout(input + bias))
-      if (pre_layer_norm) {
-        auto *ln_scale_data = ffn_ln_scales[i]->data<U>();
-        auto *ln_bias_data = ffn_ln_biases[i]->data<U>();
-        auto *out_linear_bias_data = out_linear_biases[i]->data<T>();
+      const thrust::device_ptr<const T> input_x_d = thrust::device_pointer_cast(x_data);
+      thrust::device_ptr<T> buf1_d(buf1->data<T>());
+      thrust::device_ptr<T> buf0_d(buf0->data<T>());
 
-        // inplace
-        fused_dropout_layernorm_helper.LayernormResidualDropoutBias(
-            dev_ctx,
-            buf1->data<T>(),
-            x_data,
-            out_linear_bias_data,
-            ln_scale_data,
-            ln_bias_data,
-            bias_dropout_residual_out_data,
-            dropout_mask_out_data,
-            buf1->data<T>(),
-            ln_mean_data,
-            ln_var_data);
-      } else {
+      if (t5_layer_norm) {
+        thrust::transform(input_x_d, input_x_d + input_x->numel(), buf1_d, buf0_d, thrust::plus<T>());
+
         auto *ln_scale_data = ln_scales[i]->data<U>();
         auto *ln_bias_data = ln_biases[i]->data<U>();
-        auto *out_linear_bias_data = out_linear_biases[i]->data<T>();
-        auto *residual_data = (i == 0 ? x_data : buf1->data<T>());
-        fused_dropout_layernorm_helper.LayernormResidualDropoutBias(
-            dev_ctx,
-            buf0->data<T>(),
-            residual_data,
-            out_linear_bias_data,
-            ln_scale_data,
-            ln_bias_data,
-            buf0->data<T>(),
-            dropout_mask_out_data,
-            buf1->data<T>(),
-            ln_mean_data,
-            ln_var_data);
+
+        ln_compute.ComputeForward(buf0->data<T>(),
+                                  ln_scale_data,
+                                  ln_bias_data,
+                                  buf1->data<T>(),
+                                  ln_mean_data,
+                                  ln_var_data);
+      } else {
+        // step5. ln(residual + dropout(input + bias))
+        if (pre_layer_norm) {
+          auto *ln_scale_data = ffn_ln_scales[i]->data<U>();
+          auto *ln_bias_data = ffn_ln_biases[i]->data<U>();
+          auto *out_linear_bias_data = out_linear_biases[i]->data<T>();
+
+          // inplace
+          fused_dropout_layernorm_helper.LayernormResidualDropoutBias(
+              dev_ctx,
+              buf1->data<T>(),
+              x_data,
+              out_linear_bias_data,
+              ln_scale_data,
+              ln_bias_data,
+              bias_dropout_residual_out_data,
+              dropout_mask_out_data,
+              buf1->data<T>(),
+              ln_mean_data,
+              ln_var_data);
+        } else {
+          auto *ln_scale_data = ln_scales[i]->data<U>();
+          auto *ln_bias_data = ln_biases[i]->data<U>();
+          auto *out_linear_bias_data = out_linear_biases[i]->data<T>();
+          auto *residual_data = (i == 0 ? x_data : buf1->data<T>());
+          fused_dropout_layernorm_helper.LayernormResidualDropoutBias(
+              dev_ctx,
+              buf0->data<T>(),
+              residual_data,
+              out_linear_bias_data,
+              ln_scale_data,
+              ln_bias_data,
+              buf0->data<T>(),
+              dropout_mask_out_data,
+              buf1->data<T>(),
+              ln_mean_data,
+              ln_var_data);
+        }
       }
+
 #ifdef _DEBUG_FUSED_MULTI_TRANSFORMER
       VLOG(0) << "step5";
 #endif
@@ -1525,10 +1567,11 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
 
       // step7. act bias
       // TODO(wangxi): remove dropout mask in inference
+      auto act_method = t5_layer_norm? "relu" : "gelu";
       fused_act_dropout_helper.DropoutActBias(dev_ctx,
                                               ffn1_out_data,
                                               ffn1_biases[i]->data<T>(),
-                                              "gelu",
+                                              act_method,
                                               ffn1_dropout_out_data,
                                               ffn1_dropout_mask_data);
 #ifdef _DEBUG_FUSED_MULTI_TRANSFORMER
@@ -1547,6 +1590,11 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
       VLOG(0) << "step8.0";
 #endif
 
+#ifdef DEBUG_T5
+      printf("[fused] ff linear2: ");
+      log_file("buf1", *buf1);
+#endif
+
       if (pre_layer_norm) {
         AllReduce<T>(*buf1, ring_id, dev_ctx);
       } else {
@@ -1557,48 +1605,57 @@ class FusedMultiTransformerOpKernel : public framework::OpKernel<T> {
 #endif
 
       // step9. residual bias
-      if (pre_layer_norm) {
-        // TODO(wangxi): remove dropout mask in inference
-        if (i < layers - 1) {
-          auto *ln_scale_data = ln_scales[i + 1]->data<U>();
-          auto *ln_bias_data = ln_biases[i + 1]->data<U>();
+      if (t5_layer_norm) {
+        thrust::transform(buf0_d,
+                          buf0_d + input_x->numel(),
+                          buf1_d,
+                          buf1_d,
+                          thrust::plus<T>());
+      } else {
+        if (pre_layer_norm) {
+          // TODO(wangxi): remove dropout mask in inference
+          if (i < layers - 1) {
+            auto *ln_scale_data = ln_scales[i + 1]->data<U>();
+            auto *ln_bias_data = ln_biases[i + 1]->data<U>();
+            ffn2_fused_dropout_helper.LayernormResidualDropoutBias(
+                dev_ctx,
+                buf1->data<T>(),
+                bias_dropout_residual_out_data,
+                ffn2_biases[i]->data<T>(),
+                ln_scale_data,
+                ln_bias_data,
+                buf1->data<T>(),
+                dropout_mask_out_data,
+                buf0->data<T>(),
+                ln_mean_data,
+                ln_var_data);
+          } else {
+            ffn2_fused_dropout_helper.ResidualDropoutBias(
+                dev_ctx,
+                buf1->data<T>(),
+                bias_dropout_residual_out_data,
+                ffn2_biases[i]->data<T>(),
+                buf1->data<T>(),
+                dropout_mask_out_data);
+          }
+        } else {
+          auto *ln_scale_data = ffn_ln_scales[i]->data<U>();
+          auto *ln_bias_data = ffn_ln_biases[i]->data<U>();
           ffn2_fused_dropout_helper.LayernormResidualDropoutBias(
               dev_ctx,
+              buf0->data<T>(),
               buf1->data<T>(),
-              bias_dropout_residual_out_data,
               ffn2_biases[i]->data<T>(),
               ln_scale_data,
               ln_bias_data,
-              buf1->data<T>(),
-              dropout_mask_out_data,
               buf0->data<T>(),
+              dropout_mask_out_data,
+              buf1->data<T>(),
               ln_mean_data,
               ln_var_data);
-        } else {
-          ffn2_fused_dropout_helper.ResidualDropoutBias(
-              dev_ctx,
-              buf1->data<T>(),
-              bias_dropout_residual_out_data,
-              ffn2_biases[i]->data<T>(),
-              buf1->data<T>(),
-              dropout_mask_out_data);
         }
-      } else {
-        auto *ln_scale_data = ffn_ln_scales[i]->data<U>();
-        auto *ln_bias_data = ffn_ln_biases[i]->data<U>();
-        ffn2_fused_dropout_helper.LayernormResidualDropoutBias(
-            dev_ctx,
-            buf0->data<T>(),
-            buf1->data<T>(),
-            ffn2_biases[i]->data<T>(),
-            ln_scale_data,
-            ln_bias_data,
-            buf0->data<T>(),
-            dropout_mask_out_data,
-            buf1->data<T>(),
-            ln_mean_data,
-            ln_var_data);
       }
+
 #ifdef _DEBUG_FUSED_MULTI_TRANSFORMER
       VLOG(0) << "step9";
 #endif

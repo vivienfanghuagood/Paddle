@@ -44,21 +44,19 @@ class AttnLayerNorm {
                       LayerNormParamType<T>* var_data) {
     auto stream = dev_ctx_.stream();
 
-    if(is_t5_mode){
+    if (is_t5_mode) {
       printf("[dddd] run in t5 layernorm!\n");
       switch (GetDesiredBlockDim(feature_size_)) {
         FIXED_BLOCK_DIM_CASE(
             LayerNormForwardT5<T, LayerNormParamType<T>, kBlockDim>
-            <<<batch_size_, kBlockDim, 0, stream>>>(x_data,
-                                                    y_data,
-                                                    var_data,
-                                                    epsilon_,
-                                                    feature_size_));
+            <<<batch_size_, kBlockDim, 0, stream>>>(
+                x_data, y_data, var_data, epsilon_, feature_size_));
         default:
           PADDLE_THROW(platform::errors::InvalidArgument(
               "Feature_size must be larger than 1"));
           break;
-    }
+      }
+      return;
     }
 
     switch (GetDesiredBlockDim(feature_size_)) {
