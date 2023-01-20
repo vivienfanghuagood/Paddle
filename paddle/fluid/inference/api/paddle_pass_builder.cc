@@ -104,6 +104,7 @@ const std::vector<std::string> kTRTSubgraphPasses({
       "multihead_matmul_roformer_fuse_pass",          //
       "constant_folding_pass",                        //
       "vit_attention_fuse_pass",                      //
+      "mul_split_gelu_mul_fuse",                      //
 #if defined _WIN32  // Windows CI is TensorRT7.0. Remove this after upgrading.
 #else
       "trt_skip_layernorm_fuse_pass",    //
@@ -212,7 +213,7 @@ const std::vector<std::string> kCINNCompilerPasses{
 
 GpuPassStrategy::GpuPassStrategy() : PassStrategy({}) {
   passes_.assign({
-    "identity_scale_op_clean_pass",                                     //
+        "identity_scale_op_clean_pass",                                 //
         "is_test_pass",                                                 //
         "simplify_with_basic_ops_pass",                                 //
         "delete_quant_dequant_linear_op_pass",                          //
@@ -225,6 +226,7 @@ GpuPassStrategy::GpuPassStrategy() : PassStrategy({}) {
         "embedding_eltwise_layernorm_fuse_pass",                        //
         "multihead_matmul_fuse_pass_v2",                                //
         "vit_attention_fuse_pass",                                      //
+        "mul_split_gelu_mul_fuse",                                      //
         "fused_multi_transformer_encoder_pass",                         //
         "fused_multi_transformer_decoder_pass",                         //
         "fused_multi_transformer_encoder_fuse_qkv_pass",                //

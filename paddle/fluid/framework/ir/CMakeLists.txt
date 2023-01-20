@@ -123,6 +123,7 @@ pass_library(matmul_scale_fuse_pass inference)
 pass_library(gpu_cpu_map_matmul_to_mul_pass inference)
 pass_library(dense_fc_to_sparse_pass inference)
 pass_library(dense_multihead_matmul_to_sparse_pass inference)
+# pass_library(gemm_gate_gelu_rewrite_pass inference)
 pass_library(generate_pass DEPS pass_desc_proto)
 target_link_libraries(generate_pass pass_desc_proto)
 
@@ -138,6 +139,8 @@ if(WITH_TENSORRT)
   pass_library(layernorm_shift_partition_fuse_pass inference)
   pass_library(reverse_roll_fuse_pass inference)
   pass_library(preln_layernorm_x_fuse_pass inference)
+  pass_library(gemm_gate_gelu_rewrite_pass inference)
+
 endif()
 
 if(WITH_TENSORRT)
