@@ -106,7 +106,8 @@ const std::vector<std::string> kTRTSubgraphPasses({
       "multihead_matmul_roformer_fuse_pass",          //
       "constant_folding_pass",                        //
       "vit_attention_fuse_pass",                      //
-      "split_gelu_mul_pass",                          //
+     
+      // "split_gelu_mul_pass",                          //
       "trt_skip_layernorm_fuse_pass",                 //
       "preln_skip_layernorm_fuse_pass",               //
       "layernorm_shift_partition_fuse_pass",          //
@@ -121,6 +122,7 @@ const std::vector<std::string> kTRTSubgraphPasses({
       "trt_map_matmul_v2_to_mul_pass",                //
       "trt_map_matmul_v2_to_matmul_pass",             //
       "trt_map_matmul_to_mul_pass",                   //
+      "gemm_gate_gelu_rewrite_pass", //
       "fc_fuse_pass",                                 //
       "conv_elementwise_add_fuse_pass",               //
       "trans_layernorm_fuse_pass",                    //
@@ -129,7 +131,8 @@ const std::vector<std::string> kTRTSubgraphPasses({
       // "yolo_box_fuse_pass",      //
       "dense_fc_to_sparse_pass",                //
       "dense_multihead_matmul_to_sparse_pass",  //
-      "elementwise_groupnorm_act_pass",         //
+      
+      // "elementwise_groupnorm_act_pass",         //
       "preln_elementwise_groupnorm_act_pass",   //
       "groupnorm_act_pass",
       "elementwiseadd_transpose_pass",  //

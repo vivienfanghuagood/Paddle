@@ -142,6 +142,7 @@ if(WITH_TENSORRT)
   pass_library(elementwise_groupnorm_act_pass inference)
   pass_library(preln_elementwise_groupnorm_act_pass inference)
   pass_library(trans_layernorm_fuse_pass inference)
+  pass_library(gemm_gate_gelu_rewrite_pass inference)
   pass_library(split_gelu_mul_pass inference)
   pass_library(groupnorm_act_pass inference)
 endif()
@@ -332,6 +333,10 @@ cc_test(
   test_fuse_multi_transformer_layer_pass
   SRCS fuse_multi_transformer_layer_pass_tester.cc
   DEPS fuse_multi_transformer_layer_pass)
+cc_test(
+  test_gemm_gate_gelu_pass
+  SRCS gemm_gate_gelu_rewrite_pass_tester.cc
+  DEPS gemm_gate_gelu_rewrite_pass)
 cc_test(
   test_conv_bn_fuse_pass_cc
   SRCS conv_bn_fuse_pass_tester.cc

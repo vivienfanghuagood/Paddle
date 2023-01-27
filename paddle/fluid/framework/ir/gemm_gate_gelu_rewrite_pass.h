@@ -51,7 +51,8 @@ struct GemmGateGeluPattern : public PatternBase {
 
   PDNode* operator()(PDNode *x){
     x->assert_is_op_input("mul", "X");
-    auto *mul_op = pattern->NewNode(mul_repr())->assert_is_op("mul");
+    std::unordered_set<std::string> mul_ops{"mul", "matmul_v2", "matmul"};
+    auto *mul_op = pattern->NewNode(mul_repr())->assert_is_ops(mul_ops);
     auto *mul_w_var = pattern->NewNode(mul_weight_repr())
                         ->AsInput()
                         ->assert_is_persistable_var()
@@ -147,12 +148,6 @@ public:
         .End()
         .AddOutput("Out")
         .IsTensor()
-        .End()
-        .AddAttr("axis")
-        .IsNumEQ(2)
-        .End()
-        .AddAttr("num")
-        .IsNumEQ(2)
         .End();
 
     AddOpCompat(OpCompat("elementwise_add"))
@@ -371,3 +366,5 @@ private:
 }  // namespace ir
 }  // namespace framework
 }  // namespace paddle
+
+REGISTER_PASS(gemm_gate_gelu_rewrite_pass, paddle::framework::ir::MulSplitGeluMulFusePass);
