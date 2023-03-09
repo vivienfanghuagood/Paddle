@@ -110,6 +110,7 @@ class SetValueMaker : public framework::OpProtoAndCheckerMaker {
                  framework::proto::VarType::INT64,
                  framework::proto::VarType::FP32,
                  framework::proto::VarType::FP64,
+                 framework::proto::VarType::BF16,
                  framework::proto::VarType::FP16})
         .SetDefault(framework::proto::VarType::FP32);
     AddAttr<std::vector<int64_t>>(
@@ -142,6 +143,8 @@ class SetValueMaker : public framework::OpProtoAndCheckerMaker {
     AddAttr<std::vector<double>>("fp64_values", "Store the float64 values.")
         .SetDefault({});
     AddAttr<std::vector<float>>("fp16_values", "Store the float16 values.")
+        .SetDefault({});
+    AddAttr<std::vector<float>>("bf16_values", "Store the bfloat16 values.")
         .SetDefault({});
 
     AddAttr<std::vector<int64_t>>("shape", "(vector<int64_t>) Shape of values.")

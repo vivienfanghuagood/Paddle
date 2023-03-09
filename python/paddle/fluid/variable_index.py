@@ -806,6 +806,9 @@ def _setitem_impl_(var, item, value):
         elif dtype == core.VarDesc.VarType.FP16:
             value_name = "fp16_values"
             values = [float(v) for v in value.flat]
+        elif dtype == core.VarDesc.VarType.BF16:
+            value_name = "bf16_values"
+            values = [float(v) for v in value.flat]
         else:
             raise TypeError(
                 "When assign a numpy.ndarray, integer or float to a paddle.Tensor, "
