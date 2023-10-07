@@ -22,7 +22,9 @@
 
 #include "brpc/channel.h"
 #include "brpc/server.h"
+#ifndef PADDLE_NO_PYTHON
 #include "paddle/fluid/distributed/rpc/python_rpc_handler.h"
+#endif
 #include "paddle/fluid/distributed/rpc/rpc.pb.h"
 #include "paddle/fluid/distributed/rpc/rpc_service.h"
 #include "paddle/fluid/platform/macros.h"

@@ -20,7 +20,9 @@
 #include <future>
 #include <string>
 
+#ifndef PADDLE_NO_PYTHON
 #include "paddle/fluid/distributed/rpc/python_rpc_handler.h"
+#endif
 #include "paddle/fluid/platform/enforce.h"
 #include "paddle/fluid/platform/macros.h"
 

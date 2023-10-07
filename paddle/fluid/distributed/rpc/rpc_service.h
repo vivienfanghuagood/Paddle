@@ -18,7 +18,9 @@
 
 #include <string>
 
+#ifndef PADDLE_NO_PYTHON
 #include "paddle/fluid/distributed/rpc/python_rpc_handler.h"
+#endif
 #include "paddle/fluid/distributed/rpc/rpc.pb.h"
 
 namespace paddle {
