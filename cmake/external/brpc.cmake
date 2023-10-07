@@ -46,7 +46,7 @@ set(prefix_path
     "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/leveldb|${THIRD_PARTY_PATH}/install/snappy|${THIRD_PARTY_PATH}/install/gtest|${THIRD_PARTY_PATH}/install/protobuf|${THIRD_PARTY_PATH}/install/zlib|${THIRD_PARTY_PATH}/install/glog"
 )
 
-set(BRPC_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -faligned-new -Wno-error=misleading-indentation -Wno-error=parentheses -Wno-error=implicit-fallthrough -std=c++11")
+set(BRPC_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -faligned-new -Wno-error=misleading-indentation -Wno-error=parentheses -Wno-error=implicit-fallthrough -D__const__=__unused__ -std=c++11")
 # If minimal .a is need, you can set  WITH_DEBUG_SYMBOLS=OFF
 ExternalProject_Add(
   extern_brpc
