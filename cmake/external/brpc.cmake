@@ -46,6 +46,11 @@ set(prefix_path
     "${THIRD_PARTY_PATH}/install/gflags|${THIRD_PARTY_PATH}/install/leveldb|${THIRD_PARTY_PATH}/install/snappy|${THIRD_PARTY_PATH}/install/gtest|${THIRD_PARTY_PATH}/install/protobuf|${THIRD_PARTY_PATH}/install/zlib|${THIRD_PARTY_PATH}/install/glog"
 )
 
+file(TO_NATIVE_PATH ${PADDLE_SOURCE_DIR}/patches/brpc/rep.patch native_src)
+set(BRPC_PATCH_COMMAND
+    git checkout -- . && git checkout ${BRPC_TAG} && patch -Nd
+    ${PADDLE_SOURCE_DIR}/third_party/brpc/src/bthread/ < ${native_src})
+
 set(BRPC_CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -faligned-new -Wno-error=misleading-indentation -Wno-error=parentheses -Wno-error=implicit-fallthrough -D__const__=__unused__ -std=c++11")
 # If minimal .a is need, you can set  WITH_DEBUG_SYMBOLS=OFF
 ExternalProject_Add(
@@ -54,6 +59,7 @@ ExternalProject_Add(
   SOURCE_DIR ${BRPC_SOURCE_DIR}
   PREFIX ${BRPC_PREFIX_DIR}
   UPDATE_COMMAND ""
+  PATCH_COMMAND ${BRPC_PATCH_COMMAND}
   CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
              -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
              -DCMAKE_CXX_FLAGS=${BRPC_CMAKE_CXX_FLAGS}

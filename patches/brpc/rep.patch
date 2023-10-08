@@ -1,0 +1,47 @@
+From 90599db0fc07317c58e5882c519245e5dc8a6aef Mon Sep 17 00:00:00 2001
+From: zhangyulong04 <zhangyulong04@baidu.com>
+Date: Sun, 8 Oct 2023 11:09:03 +0800
+Subject: [PATCH] dd
+
+---
+ src/bthread/errno.cpp | 5 +++--
+ src/bthread/mutex.cpp | 4 ++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/bthread/errno.cpp b/src/bthread/errno.cpp
+index 7f5e2ca0..d1fdf646 100644
+--- a/src/bthread/errno.cpp
++++ b/src/bthread/errno.cpp
+@@ -30,10 +30,11 @@ extern "C" {
+ 
+ #if defined(OS_LINUX)
+ 
+-extern int *__errno_location() __attribute__((__const__));
++//extern int *__errno_location() __attribute__((__const__));
+ 
+ int *bthread_errno_location() {
+-    return __errno_location();
++    //return __errno_location();
++    return nullptr;
+ }
+ #elif defined(OS_MACOSX)
+ 
+diff --git a/src/bthread/mutex.cpp b/src/bthread/mutex.cpp
+index 3d38ef93..a91348b4 100644
+--- a/src/bthread/mutex.cpp
++++ b/src/bthread/mutex.cpp
+@@ -815,10 +815,10 @@ int bthread_mutex_unlock(bthread_mutex_t* m) {
+     return 0;
+ }
+ 
+-int pthread_mutex_lock (pthread_mutex_t *__mutex) {
++int pthread_mutex_lock (pthread_mutex_t *__mutex) noexcept {
+     return bthread::pthread_mutex_lock_impl(__mutex);
+ }
+-int pthread_mutex_unlock (pthread_mutex_t *__mutex) {
++int pthread_mutex_unlock (pthread_mutex_t *__mutex) noexcept {
+     return bthread::pthread_mutex_unlock_impl(__mutex);
+ }
+ 
+-- 
+2.32.0
