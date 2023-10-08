@@ -1,13 +1,38 @@
-From 90599db0fc07317c58e5882c519245e5dc8a6aef Mon Sep 17 00:00:00 2001
+From 7bf5a9de53476db75cb5bcd5235d70d2417b0fbd Mon Sep 17 00:00:00 2001
 From: zhangyulong04 <zhangyulong04@baidu.com>
-Date: Sun, 8 Oct 2023 11:09:03 +0800
-Subject: [PATCH] dd
+Date: Sun, 8 Oct 2023 20:13:20 +0800
+Subject: [PATCH] add
 
 ---
+ src/CMakeLists.txt    | 6 +++---
  src/bthread/errno.cpp | 5 +++--
  src/bthread/mutex.cpp | 4 ++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ 3 files changed, 8 insertions(+), 7 deletions(-)
 
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index fbcc7cc5..a5361b46 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -48,7 +48,7 @@ set(protoc_gen_mcpack_SOURCES
+     ${PROJECT_SOURCE_DIR}/src/mcpack2pb/generator.cpp
+  )
+     
+-add_executable(protoc-gen-mcpack ${protoc_gen_mcpack_SOURCES})
++#add_executable(protoc-gen-mcpack ${protoc_gen_mcpack_SOURCES})
+ 
+ if(BUILD_SHARED_LIBS)
+     add_library(brpc-shared SHARED $<TARGET_OBJECTS:BUTIL_LIB> 
+@@ -70,8 +70,8 @@ if(BUILD_SHARED_LIBS)
+             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+             )
+-else()
+-    target_link_libraries(protoc-gen-mcpack brpc-static ${DYNAMIC_LIB} pthread)
++#else()
++#    target_link_libraries(protoc-gen-mcpack brpc-static ${DYNAMIC_LIB} pthread)
+ endif()
+ 
+ 
 diff --git a/src/bthread/errno.cpp b/src/bthread/errno.cpp
 index 7f5e2ca0..d1fdf646 100644
 --- a/src/bthread/errno.cpp
