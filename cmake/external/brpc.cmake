@@ -71,7 +71,7 @@ ExternalProject_Add(
              -DCMAKE_PREFIX_PATH=${prefix_path}
              -DWITH_GLOG=ON
              -DBUILD_BRPC_TOOLS=ON
-             -DBUILD_SHARED_LIBS=ON
+             -DBUILD_SHARED_LIBS=OFF
              ${EXTERNAL_OPTIONAL_ARGS}
   LIST_SEPARATOR |
   CMAKE_CACHE_ARGS
