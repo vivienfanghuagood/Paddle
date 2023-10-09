@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+#define PADDLE_NO_PYTHON 1
 
 #include <future>
 #include <memory>

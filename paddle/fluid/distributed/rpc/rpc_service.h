@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #pragma once
-
+#define PADDLE_NO_PYTHON 1
 #include <brpc/server.h>
 
 #include <string>
@@ -36,6 +36,7 @@ class RpcService : public RpcBaseService {
                          google::protobuf::Closure *done) {
     // This object helps you to call done->Run() in RAII style. If you need
     // to process the request asynchronously, pass done_guard.release().
+    #ifndef PADDLE_NO_PYTHON
     brpc::ClosureGuard done_guard(done);
 
     brpc::Controller *cntl = static_cast<brpc::Controller *>(cntl_base);
@@ -52,6 +53,7 @@ class RpcService : public RpcBaseService {
     py::object res = python_handler->RunPythonFunc(py_func_obj);
     std::string res_str = python_handler->Serialize(res);
     response->set_message(res_str);
+    #endif
   }
 };
 }  // namespace distributed
