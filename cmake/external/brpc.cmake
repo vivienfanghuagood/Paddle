@@ -73,7 +73,7 @@ ExternalProject_Add(
              -DCMAKE_BUILD_TYPE=${THIRD_PARTY_BUILD_TYPE}
              -DCMAKE_PREFIX_PATH=${prefix_path}
              -DWITH_GLOG=ON
-             -DBUILD_BRPC_TOOLS=ON
+             -DBUILD_BRPC_TOOLS=OFF
              -DBUILD_SHARED_LIBS=OFF
              ${EXTERNAL_OPTIONAL_ARGS}
   LIST_SEPARATOR |
