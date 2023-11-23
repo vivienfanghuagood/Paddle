@@ -583,4 +583,12 @@ if(WITH_CUDNN_FRONTEND)
   list(APPEND third_party_deps extern_cudnn_frontend)
 endif()
 
+if(WITH_XFT)
+  include(external/ig)
+  list(APPEND third_party_deps ig_lib)
+
+  include(external/xdnn)
+  list(APPEND third_party_deps xdnn_lib)
+endif()
+
 add_custom_target(third_party ALL DEPENDS ${third_party_deps})
