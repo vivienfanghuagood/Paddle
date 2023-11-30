@@ -584,8 +584,8 @@ if(WITH_CUDNN_FRONTEND)
 endif()
 
 if(WITH_XFT)
-  include(external/ig)
-  list(APPEND third_party_deps ig_lib)
+  # include(external/ig)
+  # list(APPEND third_party_deps ig_lib)
 
   include(external/xdnn)
   list(APPEND third_party_deps xdnn_lib)

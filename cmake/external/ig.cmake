@@ -32,3 +32,9 @@ ExternalProject_Add(ig_lib
   TEST_COMMAND      ""
 )
 # cmake-format: on
+
+add_library(ig STATIC IMPORTED GLOBAL)
+set (IG_LIBRARIES /work/fhq/Paddle/third_party/ig/libig.so)
+set (IG_LIBRARIES /work/fhq/Paddle/third_party/ig/libig_static.a)
+set_property(TARGET ig PROPERTY IMPORTED_LOCATION ${IG_LIBRARIES})
+add_dependencies(ig ig_lib)

@@ -18,6 +18,10 @@ limitations under the License. */
 #include "fused_multi_transformer_cpu_op.h"
 #include "paddle/fluid/framework/op_registry.h"
 #include "paddle/fluid/framework/op_version_registry.h"
+#include "xft/common/dtype.h"
+#include "xft/layers/matmul_helper.h"
+#include "xft/kernels/layernorm_kernels.h"
+#include "xft/kernels/rmsnorm_kernels.h"
 
 namespace paddle {
 namespace operators {
@@ -316,10 +320,28 @@ class FusedMultiTransformerCPUOpKernel : public framework::OpKernel<T> {
     qkv_out.Resize({{bsz, seq_len, 3, num_head, dim_head}});
     auto *qkv_out_data = device_ctx.Alloc<T>(&qkv_out, qkv_out.numel() * sizeof(T));
 
-    // for(int i=0; i< layers; ++i){
-    //   auto qkv_weight = qkv_weights[i];
-    //   auto qkv_bias = qkv_biases[i];
-    // }
+    phi::DenseTensor layernorm_out;
+    layernorm_out.Resize({{bsz, seq_len, dim_embed}});
+    device_ctx.Alloc<float>(&layernorm_out, layernorm_out.numel() * sizeof(float));
+    auto* layernorm_out_data = layernorm_out.data<float>();
+
+    auto* input_x_data = input_x->data<T>();
+    auto *out = ctx.Output<phi::DenseTensor>("Out");
+    auto *out_data = device_ctx.Alloc<T>(out, out->numel() * sizeof(T));
+
+    for(int i=0; i< num_layer; ++i){
+      auto *ln_scale_data = ln_scales[i]->data<float>();
+      bool compute_ln_bias = ln_biases.size() > 0;
+      auto *ln_bias_data = compute_ln_bias? ln_biases[i]->data<float>() : nullptr;
+      if (i == 0 && pre_layer_norm) {
+        if(!compute_ln_bias){
+          xft::invokeRmsNorm(out_data, input_x_data, ln_scale_data, bsz_seq, dim_embed, -1, -1, 1e-5f);
+        }
+      }
+      
+      // auto qkv_weight = qkv_weights[i];
+      // auto qkv_bias = qkv_biases[i];
+    }
   }
 };
 
@@ -343,5 +365,4 @@ PD_REGISTER_STRUCT_KERNEL(fused_multi_transformer_cpu,
                           CPU,
                           ALL_LAYOUT,
                           ops::FusedMultiTransformerCPUOpKernel,
-                          float,
-                          plat::float16) {}
+                          float) {}

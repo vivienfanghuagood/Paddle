@@ -14,6 +14,8 @@
 // ============================================================================
 #pragma once
 
+#ifndef BIT_CAST_H
+#define BIT_CAST_H
 #include <cstdint>
 #include <type_traits>
 
@@ -30,3 +32,5 @@ inline T1 bit_cast(const T2 &u) {
         t_ptr[i] = u_ptr[i];
     return t;
 }
+
+#endif // BIT_CAST_H

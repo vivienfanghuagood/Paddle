@@ -25,20 +25,19 @@ project(dependency NONE)
 include(ExternalProject)
 
 # cmake-format: off
-ExternalProject_Add(xdnn_lib
-  URL               https://github.com/intel/xFasterTransformer/releases/download/IntrinsicGemm/xdnn_v1.2.1.tar.gz
-  URL_HASH          MD5=b55b5d58c92339aa088dcc6e1df6ede2
-  TIMEOUT           60
-  SOURCE_DIR        ${CMAKE_SOURCE_DIR}/third_party/xdnn
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND     ""
+ExternalProject_Add(onednn
+  GIT_REPOSITORY    https://github.com/oneapi-src/oneDNN.git
+  GIT_TAG           v3.2
+  SOURCE_DIR        ${CMAKE_SOURCE_DIR}/third_party/onednn
+  BINARY_DIR        ${CMAKE_SOURCE_DIR}/third_party/onednn
+  CONFIGURE_COMMAND ${CMAKE_COMMAND} -E make_directory "build" && ${CMAKE_COMMAND} -E chdir "build" ${CMAKE_COMMAND} -DONEDNN_LIBRARY_TYPE=STATIC -DONEDNN_BUILD_TESTS=OFF -DONEDNN_BUILD_EXAMPLES=OFF ..
+  BUILD_COMMAND     ${CMAKE_COMMAND} -E chdir "build" make -j all
   INSTALL_COMMAND   ""
   TEST_COMMAND      ""
 )
 # cmake-format: on
 
-
-add_library(xdnn STATIC IMPORTED GLOBAL)
+add_library(onednn STATIC IMPORTED GLOBAL)
 # set (XDNN_LIBRARIES /work/fhq/Paddle/third_party/xdnn/libxdnn.so)
 set (XDNN_LIBRARIES /work/fhq/Paddle/third_party/xdnn/libxdnn_static.a)
 set_property(TARGET xdnn PROPERTY IMPORTED_LOCATION ${XDNN_LIBRARIES})

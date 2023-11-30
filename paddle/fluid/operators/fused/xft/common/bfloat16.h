@@ -13,6 +13,8 @@
 // limitations under the License.
 // ============================================================================
 #pragma once
+#ifndef BFLOAT_16H
+#define BFLOAT_16H
 
 #include <array>
 #include <cmath>
@@ -86,3 +88,5 @@ private:
 };
 
 static_assert(sizeof(bfloat16_t) == 2, "bfloat16_t must be 2 bytes");
+
+#endif // BFLOAT_16H

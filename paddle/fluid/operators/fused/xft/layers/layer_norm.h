@@ -14,7 +14,7 @@
 // ============================================================================
 #pragma once
 
-#include "dtype.h"
+#include "../common/dtype.h"
 
 namespace xft {
 
