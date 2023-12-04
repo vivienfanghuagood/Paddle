@@ -1,5 +1,6 @@
 # add_subdirectory(details)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 cc_test(
   data_type_test
   SRCS data_type_test.cc

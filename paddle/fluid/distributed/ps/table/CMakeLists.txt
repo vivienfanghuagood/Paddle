@@ -32,8 +32,6 @@ set(PADDLE_LIB_THIRD_PARTY_PATH "${PADDLE_LIB}/third_party/")
 include_directories(
   ${PADDLE_LIB_THIRD_PARTY_PATH}libmct/src/extern_libmct/libmct/include)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-
 set(TABLE_SRC memory_dense_table.cc barrier_table.cc common_graph_table.cc)
 #set(EXTERN_DEP rocksdb)
 cc_library(

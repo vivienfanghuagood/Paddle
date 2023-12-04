@@ -2,6 +2,7 @@ set(PYTHON_TESTS_DIR
     ${PADDLE_BINARY_DIR}/python/paddle/base/tests
     CACHE INTERNAL "python tests directory")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 add_subdirectory(utils)
 add_subdirectory(common)
 add_subdirectory(pir)

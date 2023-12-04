@@ -17,4 +17,4 @@ cmake_minimum_required(VERSION 3.15.1)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} XFT_KERNELS_SRCS)
 
 add_library(xft_kernels OBJECT ${XFT_KERNELS_SRCS})
-add_dependencies(xft_kernels xft_utils)
+add_dependencies(xft_kernels xft_utils xdnn)

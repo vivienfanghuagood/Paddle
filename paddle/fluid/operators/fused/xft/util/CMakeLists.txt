@@ -18,5 +18,5 @@ cmake_minimum_required(VERSION 3.15.1)
 
 add_library(xft_utils OBJECT "split_util.h" "compile_util.h")
 
-set(DEPEND_LIST  "xdnn_lib")
+set(DEPEND_LIST  "xdnn")
 add_dependencies(xft_utils ${DEPEND_LIST})

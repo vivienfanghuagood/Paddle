@@ -14,6 +14,8 @@
 
 #pragma once
 
+#undef _OPENMP
+
 #ifdef PADDLE_WITH_MKLML
 #include <omp.h>
 #endif

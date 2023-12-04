@@ -17,6 +17,8 @@ if(WITH_CUSTOM_DEVICE)
                            custom_device_common_op_registry)
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+
 add_executable(eager_generator eager_generator.cc)
 target_link_libraries(eager_generator ${EAGER_GENERETOR_DEPS})
 

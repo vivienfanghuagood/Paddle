@@ -249,6 +249,8 @@ if(WITH_NCCL OR WITH_RCCL)
   list(APPEND PYBIND_SRCS nccl_wrapper_py.cc)
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+
 if(WITH_PYTHON)
   # generate op pybind functions automatically for dygraph.
 

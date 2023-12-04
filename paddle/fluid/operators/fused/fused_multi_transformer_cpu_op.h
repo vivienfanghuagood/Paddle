@@ -16,12 +16,12 @@ limitations under the License. */
 #include <string>
 
 // #include "third_party/ig/ig_bgemm_f32bf16f32.h"
-#include "third_party/ig/ig_hgemm_f16f16f32.h"
-#include "third_party/ig/ig_hgemm_f32f16f32.h"
-#include "third_party/ig/ig_hgemm_f32i8f32.h"
-#include "third_party/ig/ig_sgemm_f32f16f32.h"
-#include "third_party/ig/ig_sgemm_f32i8f32.h"
-#include "third_party/ig/ig_sgemm.h"
+// #include "third_party/ig/ig_hgemm_f16f16f32.h"
+// #include "third_party/ig/ig_hgemm_f32f16f32.h"
+// #include "third_party/ig/ig_hgemm_f32i8f32.h"
+// #include "third_party/ig/ig_sgemm_f32f16f32.h"
+// #include "third_party/ig/ig_sgemm_f32i8f32.h"
+// #include "third_party/ig/ig_sgemm.h"
 
 namespace paddle {
 namespace operators {

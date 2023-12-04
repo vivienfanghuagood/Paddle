@@ -59,6 +59,7 @@ class FusedMultiTransformerINT8OpKernel : public framework::OpKernel<T> {
     const float epsilon = ctx.Attr<float>("epsilon");
     auto ln_scales = ctx.MultiInput<phi::DenseTensor>("LnScale");
     auto ln_biases = ctx.MultiInput<phi::DenseTensor>("LnBias");
+    
 
     auto ln_compute =
         AttnLayerNorm<T, T, int8_t>(dev_ctx, epsilon, bsz_seq, dim_embed);

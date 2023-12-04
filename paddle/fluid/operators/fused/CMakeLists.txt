@@ -4,6 +4,12 @@ if(WITH_UNITY_BUILD)
   include(unity_build_rule.cmake)
 endif()
 
+if(WITH_XFT)
+  add_subdirectory(xft)
+endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+
 register_operators(
   EXCLUDES
   fused_bn_activation_op
@@ -18,7 +24,7 @@ register_operators(
   fused_multi_transformer_cpu_op
   fused_transformer_op
   fused_feedforward_op
-  fused_multi_transformer_op
+fused_multi_transformer_op
   fused_multi_transformer_int8_op
   fused_bias_dropout_residual_layer_norm_op
   resnet_unit_op
@@ -26,7 +32,7 @@ register_operators(
   fused_gate_attention_op
   resnet_basic_block_op)
 
-op_library(fused_multi_transformer_cpu_op)
+op_library(fused_multi_transformer_cpu_op DEPS xft xft_utils xft_kernels xdnn)
 op_library(fusion_lstm_op)
 
 if(WITH_XPU)
@@ -85,6 +91,4 @@ if(WITH_GPU OR WITH_ROCM)
   endif()
 endif()
 
-if(WITH_XFT)
-  add_subdirectory(xft)
-endif()
+# target_link_libraries(fused_multi_transformer_cpu_op )

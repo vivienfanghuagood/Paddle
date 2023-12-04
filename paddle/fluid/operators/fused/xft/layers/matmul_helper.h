@@ -67,208 +67,208 @@ public:
     //  ↓   |____________|____________|       ↓   |_________________________|
     //               transposed                          not_transposed
     //
-    template <typename WeiT>
-    static void convertWeight(bool trans, int rows, int cols, const float *src, int splitOffset, int splitSize,
-            bool verticalSplit, hpj::Matrix<WeiT> &quantizedWeight, hpj::Vector<float> &scaleWeight,
-            hpj::Vector<float> &zeroWeight, bool unused) {
-        // FP32 transpose
-        if constexpr (std::is_same_v<WeiT, float>) {
-            if (verticalSplit) {
-                int colsPerSplit = splitSize;
-                if (trans) {
-                    quantizedWeight.Resize(colsPerSplit, rows);
-                    const float *base = src + splitOffset * quantizedWeight.Stride();
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        memcpy(quantizedWeight.Data() + i * quantizedWeight.Stride(), base + i * rows,
-                                quantizedWeight.Cols());
-                    }
-                } else {
-                    quantizedWeight.Resize(rows, colsPerSplit);
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        memcpy(quantizedWeight.Data() + i * quantizedWeight.Stride(), src + i * cols + splitOffset,
-                                quantizedWeight.Cols());
-                    }
-                }
-            } else {
-                int rowsPerSplit = splitSize;
-                if (trans) {
-                    quantizedWeight.Resize(cols, rowsPerSplit);
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        memcpy(quantizedWeight.Data() + i * quantizedWeight.Stride(),
-                                src + i * rows + splitOffset, quantizedWeight.Cols());
-                    }
-                } else {
-                    quantizedWeight.Resize(rowsPerSplit, cols);
-                    const float *base = src + splitOffset * quantizedWeight.Stride();
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        memcpy(quantizedWeight.Data() + i * quantizedWeight.Stride(), base + i * cols,
-                                quantizedWeight.Cols());
-                    }
-                }
-            }
-        }
+//     template <typename WeiT>
+//     static void convertWeight(bool trans, int rows, int cols, const float *src, int splitOffset, int splitSize,
+//             bool verticalSplit, hpj::Matrix<WeiT> &quantizedWeight, hpj::Vector<float> &scaleWeight,
+//             hpj::Vector<float> &zeroWeight, bool unused) {
+//         // FP32 transpose
+//         if constexpr (std::is_same_v<WeiT, float>) {
+//             if (verticalSplit) {
+//                 int colsPerSplit = splitSize;
+//                 if (trans) {
+//                     quantizedWeight.Resize(colsPerSplit, rows);
+//                     const float *base = src + splitOffset * quantizedWeight.Stride();
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         memcpy(quantizedWeight.Data() + i * quantizedWeight.Stride(), base + i * rows,
+//                                 quantizedWeight.Cols());
+//                     }
+//                 } else {
+//                     quantizedWeight.Resize(rows, colsPerSplit);
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         memcpy(quantizedWeight.Data() + i * quantizedWeight.Stride(), src + i * cols + splitOffset,
+//                                 quantizedWeight.Cols());
+//                     }
+//                 }
+//             } else {
+//                 int rowsPerSplit = splitSize;
+//                 if (trans) {
+//                     quantizedWeight.Resize(cols, rowsPerSplit);
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         memcpy(quantizedWeight.Data() + i * quantizedWeight.Stride(),
+//                                 src + i * rows + splitOffset, quantizedWeight.Cols());
+//                     }
+//                 } else {
+//                     quantizedWeight.Resize(rowsPerSplit, cols);
+//                     const float *base = src + splitOffset * quantizedWeight.Stride();
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         memcpy(quantizedWeight.Data() + i * quantizedWeight.Stride(), base + i * cols,
+//                                 quantizedWeight.Cols());
+//                     }
+//                 }
+//             }
+//         }
 
-        // FP32 -> FP16
-        else if constexpr (std::is_same_v<WeiT, float16_t>) {
-            if (verticalSplit) {
-                int colsPerSplit = splitSize;
-                if (trans) { // right
-                    quantizedWeight.Resize(colsPerSplit, rows);
-                    const float *base = src + splitOffset * quantizedWeight.Stride();
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        float16_t::cvt_float_to_float16(base + i * rows,
-                                quantizedWeight.Data() + i * quantizedWeight.Stride(), quantizedWeight.Cols());
-                    }
-                } else {
-                    quantizedWeight.Resize(rows, colsPerSplit);
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        float16_t::cvt_float_to_float16(src + i * cols + splitOffset,
-                                quantizedWeight.Data() + i * quantizedWeight.Stride(), quantizedWeight.Cols());
-                    }
-                }
-            } else {
-                int rowsPerSplit = splitSize;
-                if (trans) {
-                    quantizedWeight.Resize(cols, rowsPerSplit);
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        float16_t::cvt_float_to_float16(src + i * rows + splitOffset,
-                                quantizedWeight.Data() + i * quantizedWeight.Stride(), quantizedWeight.Cols());
-                    }
-                } else {
-                    quantizedWeight.Resize(rowsPerSplit, cols);
-                    const float *base = src + splitOffset * quantizedWeight.Stride();
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        float16_t::cvt_float_to_float16(base + i * cols,
-                                quantizedWeight.Data() + i * quantizedWeight.Stride(), quantizedWeight.Cols());
-                    }
-                }
-            }
-        }
+//         // FP32 -> FP16
+//         else if constexpr (std::is_same_v<WeiT, float16_t>) {
+//             if (verticalSplit) {
+//                 int colsPerSplit = splitSize;
+//                 if (trans) { // right
+//                     quantizedWeight.Resize(colsPerSplit, rows);
+//                     const float *base = src + splitOffset * quantizedWeight.Stride();
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         float16_t::cvt_float_to_float16(base + i * rows,
+//                                 quantizedWeight.Data() + i * quantizedWeight.Stride(), quantizedWeight.Cols());
+//                     }
+//                 } else {
+//                     quantizedWeight.Resize(rows, colsPerSplit);
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         float16_t::cvt_float_to_float16(src + i * cols + splitOffset,
+//                                 quantizedWeight.Data() + i * quantizedWeight.Stride(), quantizedWeight.Cols());
+//                     }
+//                 }
+//             } else {
+//                 int rowsPerSplit = splitSize;
+//                 if (trans) {
+//                     quantizedWeight.Resize(cols, rowsPerSplit);
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         float16_t::cvt_float_to_float16(src + i * rows + splitOffset,
+//                                 quantizedWeight.Data() + i * quantizedWeight.Stride(), quantizedWeight.Cols());
+//                     }
+//                 } else {
+//                     quantizedWeight.Resize(rowsPerSplit, cols);
+//                     const float *base = src + splitOffset * quantizedWeight.Stride();
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         float16_t::cvt_float_to_float16(base + i * cols,
+//                                 quantizedWeight.Data() + i * quantizedWeight.Stride(), quantizedWeight.Cols());
+//                     }
+//                 }
+//             }
+//         }
 
-        // FP32 -> BF16
-        else if constexpr (std::is_same_v<WeiT, bfloat16_t>) {
-            if (verticalSplit) {
-                int colsPerSplit = splitSize;
-                if (trans) { // right
-                    quantizedWeight.Resize(colsPerSplit, rows);
-                    const float *base = src + splitOffset * quantizedWeight.Stride();
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        for (int j = 0; j < quantizedWeight.Cols(); ++j) {
-                            quantizedWeight.Data()[i * quantizedWeight.Stride() + j] = bfloat16_t(base[i * rows + j]);
-                        }
-                    }
-                } else {
-                    quantizedWeight.Resize(rows, colsPerSplit);
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        for (int j = 0; j < quantizedWeight.Cols(); ++j) {
-                            quantizedWeight.Data()[i * quantizedWeight.Stride() + j]
-                                    = bfloat16_t(src[i * cols + splitOffset + j]);
-                        }
-                    }
-                }
-            } else {
-                int rowsPerSplit = splitSize;
-                if (trans) {
-                    quantizedWeight.Resize(cols, rowsPerSplit);
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        for (int j = 0; j < quantizedWeight.Cols(); ++j) {
-                            quantizedWeight.Data()[i * quantizedWeight.Stride() + j]
-                                    = bfloat16_t(src[i * rows + splitOffset + j]);
-                        }
-                    }
-                } else {
-                    quantizedWeight.Resize(rowsPerSplit, cols);
-                    const float *base = src + splitOffset * quantizedWeight.Stride();
-#pragma omp parallel for
-                    for (int i = 0; i < quantizedWeight.Rows(); ++i) {
-                        for (int j = 0; j < quantizedWeight.Cols(); ++j) {
-                            quantizedWeight.Data()[i * quantizedWeight.Stride() + j] = bfloat16_t(base[i * cols + j]);
-                        }
-                    }
-                }
-            }
-        }
+//         // FP32 -> BF16
+//         else if constexpr (std::is_same_v<WeiT, bfloat16_t>) {
+//             if (verticalSplit) {
+//                 int colsPerSplit = splitSize;
+//                 if (trans) { // right
+//                     quantizedWeight.Resize(colsPerSplit, rows);
+//                     const float *base = src + splitOffset * quantizedWeight.Stride();
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         for (int j = 0; j < quantizedWeight.Cols(); ++j) {
+//                             quantizedWeight.Data()[i * quantizedWeight.Stride() + j] = bfloat16_t(base[i * rows + j]);
+//                         }
+//                     }
+//                 } else {
+//                     quantizedWeight.Resize(rows, colsPerSplit);
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         for (int j = 0; j < quantizedWeight.Cols(); ++j) {
+//                             quantizedWeight.Data()[i * quantizedWeight.Stride() + j]
+//                                     = bfloat16_t(src[i * cols + splitOffset + j]);
+//                         }
+//                     }
+//                 }
+//             } else {
+//                 int rowsPerSplit = splitSize;
+//                 if (trans) {
+//                     quantizedWeight.Resize(cols, rowsPerSplit);
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         for (int j = 0; j < quantizedWeight.Cols(); ++j) {
+//                             quantizedWeight.Data()[i * quantizedWeight.Stride() + j]
+//                                     = bfloat16_t(src[i * rows + splitOffset + j]);
+//                         }
+//                     }
+//                 } else {
+//                     quantizedWeight.Resize(rowsPerSplit, cols);
+//                     const float *base = src + splitOffset * quantizedWeight.Stride();
+// #pragma omp parallel for
+//                     for (int i = 0; i < quantizedWeight.Rows(); ++i) {
+//                         for (int j = 0; j < quantizedWeight.Cols(); ++j) {
+//                             quantizedWeight.Data()[i * quantizedWeight.Stride() + j] = bfloat16_t(base[i * cols + j]);
+//                         }
+//                     }
+//                 }
+//             }
+//         }
 
-        // FP32 -> INT8
-        else if constexpr (std::is_same_v<WeiT, int8_t>) {
-            if (verticalSplit) {
-                int colsPerSplit = splitSize;
-                if (trans) {
-                    quantizedWeight.Resize(colsPerSplit, rows);
-                    scaleWeight.Resize(colsPerSplit);
-                    zeroWeight.Resize(colsPerSplit);
-                } else {
-                    quantizedWeight.Resize(rows, colsPerSplit);
-                    scaleWeight.Resize(colsPerSplit);
-                    zeroWeight.Resize(colsPerSplit);
-                }
-#ifdef AVX512_FP32_WEIGHT_ONLY_INT8
-                xdnn_sgemm_f32i8f32_quantize(trans, colsPerSplit, rows,
-                        trans ? (src + rows * splitOffset) : (src + splitOffset),
-                        trans ? rows : cols, 0.9999f, quantizedWeight.Data(), trans ? rows : colsPerSplit,
-                        scaleWeight.Data(), zeroWeight.Data());
-#elif defined(AVX512_FP16_WEIGHT_ONLY_INT8)
-                xdnn_hgemm_f32i8f32_quantize(trans, colsPerSplit, rows,
-                        trans ? (src + rows * splitOffset) : (src + splitOffset),
-                        trans ? rows : cols, 0.9999f, quantizedWeight.Data(), trans ? rows : colsPerSplit,
-                        scaleWeight.Data(), zeroWeight.Data());
-#else
-                printf("%s:%d: Need to define WEIGHT_ONLY_INT8 kernel data type.\n", __FILE__, __LINE__);
-                exit(-1);
-#endif
-            } else {
-                int rowsPerSplit = splitSize;
-                if (trans) {
-                    quantizedWeight.Resize(cols, rowsPerSplit);
-                    scaleWeight.Resize(cols);
-                    zeroWeight.Resize(cols);
-                } else {
-                    quantizedWeight.Resize(rowsPerSplit, cols);
-                    scaleWeight.Resize(cols);
-                    zeroWeight.Resize(cols);
-                }
-#ifdef AVX512_FP32_WEIGHT_ONLY_INT8
-                xdnn_sgemm_f32i8f32_quantize(trans, cols, rowsPerSplit,
-                        trans ? (src + splitOffset) : (src + splitOffset * cols),
-                        trans ? rows : cols, 0.9999f, quantizedWeight.Data(), trans ? rowsPerSplit : cols,
-                        scaleWeight.Data(), zeroWeight.Data());
-#elif defined(AVX512_FP16_WEIGHT_ONLY_INT8)
-                xdnn_hgemm_f32i8f32_quantize(trans, cols, rowsPerSplit,
-                        trans ? (src + splitOffset) : (src + splitOffset * cols),
-                        trans ? rows : cols, 0.9999f, quantizedWeight.Data(), trans ? rowsPerSplit : cols,
-                        scaleWeight.Data(), zeroWeight.Data());
-#else
-                printf("%s:%d: Need to define WEIGHT_ONLY_INT8 kernel data type.\n", __FILE__, __LINE__);
-                exit(-1);
-#endif
-            }
-        }
-    }
+//         // FP32 -> INT8
+//         else if constexpr (std::is_same_v<WeiT, int8_t>) {
+//             if (verticalSplit) {
+//                 int colsPerSplit = splitSize;
+//                 if (trans) {
+//                     quantizedWeight.Resize(colsPerSplit, rows);
+//                     scaleWeight.Resize(colsPerSplit);
+//                     zeroWeight.Resize(colsPerSplit);
+//                 } else {
+//                     quantizedWeight.Resize(rows, colsPerSplit);
+//                     scaleWeight.Resize(colsPerSplit);
+//                     zeroWeight.Resize(colsPerSplit);
+//                 }
+// #ifdef AVX512_FP32_WEIGHT_ONLY_INT8
+//                 xdnn_sgemm_f32i8f32_quantize(trans, colsPerSplit, rows,
+//                         trans ? (src + rows * splitOffset) : (src + splitOffset),
+//                         trans ? rows : cols, 0.9999f, quantizedWeight.Data(), trans ? rows : colsPerSplit,
+//                         scaleWeight.Data(), zeroWeight.Data());
+// #elif defined(AVX512_FP16_WEIGHT_ONLY_INT8)
+//                 xdnn_hgemm_f32i8f32_quantize(trans, colsPerSplit, rows,
+//                         trans ? (src + rows * splitOffset) : (src + splitOffset),
+//                         trans ? rows : cols, 0.9999f, quantizedWeight.Data(), trans ? rows : colsPerSplit,
+//                         scaleWeight.Data(), zeroWeight.Data());
+// #else
+//                 printf("%s:%d: Need to define WEIGHT_ONLY_INT8 kernel data type.\n", __FILE__, __LINE__);
+//                 exit(-1);
+// #endif
+//             } else {
+//                 int rowsPerSplit = splitSize;
+//                 if (trans) {
+//                     quantizedWeight.Resize(cols, rowsPerSplit);
+//                     scaleWeight.Resize(cols);
+//                     zeroWeight.Resize(cols);
+//                 } else {
+//                     quantizedWeight.Resize(rowsPerSplit, cols);
+//                     scaleWeight.Resize(cols);
+//                     zeroWeight.Resize(cols);
+//                 }
+// #ifdef AVX512_FP32_WEIGHT_ONLY_INT8
+//                 xdnn_sgemm_f32i8f32_quantize(trans, cols, rowsPerSplit,
+//                         trans ? (src + splitOffset) : (src + splitOffset * cols),
+//                         trans ? rows : cols, 0.9999f, quantizedWeight.Data(), trans ? rowsPerSplit : cols,
+//                         scaleWeight.Data(), zeroWeight.Data());
+// #elif defined(AVX512_FP16_WEIGHT_ONLY_INT8)
+//                 xdnn_hgemm_f32i8f32_quantize(trans, cols, rowsPerSplit,
+//                         trans ? (src + splitOffset) : (src + splitOffset * cols),
+//                         trans ? rows : cols, 0.9999f, quantizedWeight.Data(), trans ? rowsPerSplit : cols,
+//                         scaleWeight.Data(), zeroWeight.Data());
+// #else
+//                 printf("%s:%d: Need to define WEIGHT_ONLY_INT8 kernel data type.\n", __FILE__, __LINE__);
+//                 exit(-1);
+// #endif
+//             }
+//         }
+//     }
 
-    template <typename WeiT>
-    static void convertWeight(bool trans, int rows, int cols, const float *src, int numSplit, int splitIdx,
-            bool verticalSplit, hpj::Matrix<WeiT> &quantizedWeight, hpj::Vector<float> &scaleWeight,
-            hpj::Vector<float> &zeroWeight) {
-        int totalSize = verticalSplit ? cols : rows;
-        std::pair<int, int> range = SplitUtil::getTaskRange(totalSize, numSplit, splitIdx);
+//     template <typename WeiT>
+//     static void convertWeight(bool trans, int rows, int cols, const float *src, int numSplit, int splitIdx,
+//             bool verticalSplit, hpj::Matrix<WeiT> &quantizedWeight, hpj::Vector<float> &scaleWeight,
+//             hpj::Vector<float> &zeroWeight) {
+//         int totalSize = verticalSplit ? cols : rows;
+//         std::pair<int, int> range = SplitUtil::getTaskRange(totalSize, numSplit, splitIdx);
 
-        int splitSize = range.second - range.first;
-        int splitOffset = range.first;
+//         int splitSize = range.second - range.first;
+//         int splitOffset = range.first;
 
-        convertWeight(trans, rows, cols, src, splitOffset, splitSize, verticalSplit, quantizedWeight, scaleWeight,
-                zeroWeight, true);
-    }
+//         convertWeight(trans, rows, cols, src, splitOffset, splitSize, verticalSplit, quantizedWeight, scaleWeight,
+//                 zeroWeight, true);
+//     }
 
 
 
