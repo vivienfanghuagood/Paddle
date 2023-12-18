@@ -263,6 +263,7 @@ if(NOT
     AND WITH_MKL))
   list(REMOVE_ITEM kernel_cc "fusion/cpu/self_dp_attention_kernel.cc")
   list(REMOVE_ITEM kernel_cc "fusion/cpu/xft_weight_only_linear.cc")
+  list(REMOVE_ITEM kernel_cc "fusion/cpu/xft_weight_quantize.cc")
 endif()
 
 file(
