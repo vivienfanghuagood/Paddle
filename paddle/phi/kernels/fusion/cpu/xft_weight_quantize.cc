@@ -38,7 +38,7 @@ void FusedXFTWeightQuantizeKernel(const Context& dev_ctx,
     auto weight_dims = weight.dims();
     // auto scale_dims = make_ddim({1, weight_dims[0]});
 
-    const bool trans = true;
+    const bool trans = false;
     // const int SPLIT_OFFSET = 0;
     // const int NUM_SPLIT = 1; // same as the number of numa node;
 
@@ -57,7 +57,7 @@ void FusedXFTWeightQuantizeKernel(const Context& dev_ctx,
         else if(algo == "weight_only_int4"){
             hpj::Matrix<uint4x2_t> quantizedWeight;
             quantizedWeight.data.buf = reinterpret_cast<uint4x2_t*>(out->mutable_data<int8_t>(cpu_place));
-            MMHelper::convertWeight<uint4x2_t>(trans, weight_dims[0], weight_dims[1], weight_data, quantizedWeight, scaleWeight, zeroWeight);
+            MMHelper::convertWeight<uint4x2_t>(trans, weight_dims[1], weight_dims[0], weight_data, quantizedWeight, scaleWeight, zeroWeight);
         }
         else{
             throw std::runtime_error("algo not support");
