@@ -17,7 +17,7 @@ limitations under the License. */
 #include "paddle/phi/core/tensor_utils.h"
 
 #include "xft/utils/matmul_helper.h"
-// #include "xft/common/myt"
+
 
 namespace phi {
 namespace fusion{
@@ -33,7 +33,7 @@ void FusedWeightOnlyLinearKernel(const Context& dev_ctx,
                             DenseTensor* out) {
     dev_ctx.template Alloc<T>(out);
     const T* x_data = x.data<T>();
-    const int8_t* weight_data = weight.data<int8_t>();
+    
     const T* bias_data = bias ? bias.get().data<T>() : nullptr;
     const T* weight_scale_data = weight_scale.data<T>();
     const T* zero_point_data = weight_zero_point.data<T>();
@@ -44,14 +44,38 @@ void FusedWeightOnlyLinearKernel(const Context& dev_ctx,
     int k = w_dims[1];
     int m = x.numel() / k;
 
-    if(bias_data){
-        // if bias is not null, then call `compute_bias` function
-        
-        MMHelper::compute_bias<float, int8_t, float>(false, m, n, k, 1.0f, x_data, k, weight_data, weight_scale_data, zero_point_data, 0.0, out_data, n, bias_data);
+    if(weight_dtype ==  "int8"){
+        const int8_t* weight_data = weight.data<int8_t>();
+        if(bias_data){
+            // if bias is not null, then call `compute_bias` function
+            MMHelper::compute_bias<float, int8_t, float>(false, m, n, k, 1.0f, x_data, k, weight_data, weight_scale_data, zero_point_data, 0.0, out_data, n, bias_data);
+        }
+        else{
+            MMHelper::compute<float, int8_t, float>(false, m, n, k, 1.0f, x_data, k, weight_data, weight_scale_data, zero_point_data, 0.0, out_data, n);
+        }
+    }
+    else if(weight_dtype == "int4"){
+        const uint4x2_t* weight_data = reinterpret_cast<const uint4x2_t*>(weight.data<int8_t>());
+        if(bias_data){
+            MMHelper::compute_bias<float, uint4x2_t, float>(false, m, n, k, 1.0f, x_data, k, weight_data, weight_scale_data, zero_point_data, 0.0, out_data, n, bias_data);
+        }
+        else{
+            MMHelper::compute<float, uint4x2_t, float>(false, m, n, k, 1.0f, x_data, k, weight_data, weight_scale_data, zero_point_data, 0.0, out_data, n);
+        }
+    }
+    else if(weight_dtype == "nf4"){
+        const nf4x2_t* weight_data = reinterpret_cast<const nf4x2_t*>(weight.data<int8_t>());
+        if(bias_data){
+            MMHelper::compute_bias<float, nf4x2_t, float>(false, m, n, k, 1.0f, x_data, k, weight_data, weight_scale_data, zero_point_data, 0.0, out_data, n, bias_data);
+        }
+        else{
+            MMHelper::compute<float, nf4x2_t, float>(false, m, n, k, 1.0f, x_data, k, weight_data, weight_scale_data, zero_point_data, 0.0, out_data, n);
+        }
     }
     else{
-        MMHelper::compute<float, int8_t, float>(false, m, n, k, 1.0f, x_data, k, weight_data, weight_scale_data, zero_point_data, 0.0, out_data, n);
+        PADDLE_THROW(phi::errors::Unimplemented("Unsupported weight_dtype: %s", weight_dtype));
     }
+    
 }
 
 }

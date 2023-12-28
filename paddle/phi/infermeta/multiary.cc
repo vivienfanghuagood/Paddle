@@ -3973,14 +3973,14 @@ void XFTWeightOnlyLinearInferMeta(const MetaTensor& x,
       phi::errors::InvalidArgument(
           "The second dimension of input(weight) must be divisible by 16, but got[%d]",
           w_dims[1]));
-  PADDLE_ENFORCE_EQ(
-      x_dims[x_dims.size() - 1],
-      w_dims[1],
-      errors::InvalidArgument(
-          "Input(X) dim[-1] and Input(Weight) dim[1] should be euqal."
-          "But received Input(X) dim[-1](%s) != Input(Weight) dim[1](%s)",
-          x_dims[x_dims.size() - 1],
-          w_dims[1]));
+  // PADDLE_ENFORCE_EQ(
+  //     x_dims[x_dims.size() - 1],
+  //     w_dims[1],
+  //     errors::InvalidArgument(
+  //         "Input(X) dim[-1] and Input(Weight) dim[1] should be euqal."
+  //         "But received Input(X) dim[-1](%s) != Input(Weight) dim[1](%s)",
+  //         x_dims[x_dims.size() - 1],
+  //         w_dims[1]));
   auto out_dims = x_dims;
   out_dims[out_dims.size() - 1] = n;
   out->set_dims(out_dims);

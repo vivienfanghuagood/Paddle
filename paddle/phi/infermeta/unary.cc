@@ -5264,19 +5264,21 @@ void XFTWeightQuantizeInferMeta(const MetaTensor& x,
           x_dims[1]));
   std::vector<int64_t> dim_scale({x_dims[1]});
   std::vector<int64_t> dim_out;
-  if (algo == "weight_only_int8" ) {
+  if (algo == "weight_only_int8") {
     dim_out = std::vector<int64_t>({x_dims[1], x_dims[0]});
-  } else if (algo == "weight_only_int4") {
-    dim_out = std::vector<int64_t>({x_dims[1] / 2, x_dims[0]});
-  } else {
+    out->set_dtype(DataType::INT8);
+  } 
+  else if (algo == "weight_only_int4" || algo == "weight_only_nf4") {
+    dim_out = std::vector<int64_t>({x_dims[1], x_dims[0]});
+    out->set_dtype(DataType::INT8);
+  }
+   else {
     phi::errors::InvalidArgument(
-        "The algo must be in ['weight_only_int8', 'weight_only_int4', "
+        "The algo must be in ['weight_only_int8', 'weight_only_int4', 'weight_only_nf4'"
         "], but got[%s]",
         algo);
   }
   out->set_dims(common::make_ddim(dim_out));
-
-  out->set_dtype(DataType::INT8);
 
   scale->set_dims(phi::make_ddim(dim_scale));
   scale->set_dtype(x.dtype());

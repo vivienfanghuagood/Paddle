@@ -18,6 +18,7 @@ limitations under the License. */
 
 #include "xft/utils/matmul_helper.h"
 #include "xft/common/my_types.h"
+#include "glog/logging.h"
 
 namespace phi {
 namespace fusion{
@@ -58,6 +59,11 @@ void FusedXFTWeightQuantizeKernel(const Context& dev_ctx,
             hpj::Matrix<uint4x2_t> quantizedWeight;
             quantizedWeight.data.buf = reinterpret_cast<uint4x2_t*>(out->mutable_data<int8_t>(cpu_place));
             MMHelper::convertWeight<uint4x2_t>(trans, weight_dims[1], weight_dims[0], weight_data, quantizedWeight, scaleWeight, zeroWeight);
+        }
+        else if(algo == "weight_only_nf4"){
+            hpj::Matrix<nf4x2_t> quantizedWeight;
+            quantizedWeight.data.buf = reinterpret_cast<nf4x2_t*>(out->mutable_data<int8_t>(cpu_place));
+            MMHelper::convertWeight<nf4x2_t>(trans, weight_dims[1], weight_dims[0], weight_data, quantizedWeight, scaleWeight, zeroWeight);
         }
         else{
             throw std::runtime_error("algo not support");

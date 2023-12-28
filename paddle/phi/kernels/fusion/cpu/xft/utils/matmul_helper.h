@@ -27,8 +27,15 @@
 #include <cstring>
 #include <map>
 #include <tuple>
+#include "glog/logging.h"
 
 #define USE_AMX_M 8
+#ifdef AVX512_FP16_WEIGHT_ONLY_INT8
+#undef AVX512_FP16_WEIGHT_ONLY_INT8
+#endif
+#ifndef AVX512_FP32_WEIGHT_ONLY_INT8
+#define AVX512_FP32_WEIGHT_ONLY_INT8
+#endif
 
 class MMHelper {
 public:
@@ -520,9 +527,11 @@ public:
         // INT8
         else if constexpr (std::is_same_v<WeiT, int8_t>) {
 #ifdef AVX512_FP32_WEIGHT_ONLY_INT8
+            VLOG(1) << "【LOG】xdnn_sgemm_f32s8f32_compute: \n";
             // Timline t("xdnn_sgemm_f32s8f32_compute");
             xdnn_sgemm_f32s8f32_compute(transA, M, N, K, alpha, A, lda, packedB, scaleB, zeroB, beta, C, ldc);
 #elif defined(AVX512_FP16_WEIGHT_ONLY_INT8)
+            VLOG(1) << "【LOG】xdnn_hgemm_f32s8f32_compute: \n";
             // Timline t("xdnn_hgemm_f32s8f32_compute");
             xdnn_hgemm_f32s8f32_compute(transA, M, N, K, alpha, A, lda, packedB, scaleB, zeroB, beta, C, ldc);
 #else
@@ -534,10 +543,12 @@ public:
         // INT4
         else if constexpr (std::is_same_v<WeiT, uint4x2_t>) {
 #ifdef AVX512_FP32_WEIGHT_ONLY_INT4
+            VLOG(1) << "【LOG】xdnn_sgemm_f32u4f32_compute: \n";
             // Timline t("xdnn_sgemm_f32u4f32_compute");
             xdnn_sgemm_f32u4f32_compute(
                     transA, M, N, K, alpha, A, lda, (const XDNN_UINT4x2 *)packedB, scaleB, zeroB, beta, C, ldc);
 #elif defined(AVX512_FP16_WEIGHT_ONLY_INT4)
+            VLOG(1) << "【LOG】xdnn_hgemm_f32u4f32_compute: \n";
             // Timline t("xdnn_hgemm_f32u4f32_compute");
             xdnn_hgemm_f32u4f32_compute(
                     transA, M, N, K, alpha, A, lda, (const XDNN_UINT4x2 *)packedB, scaleB, zeroB, beta, C, ldc);
