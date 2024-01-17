@@ -15,6 +15,10 @@
 #pragma once
 
 #include "paddle/phi/core/dense_tensor.h"
+#include "paddle/utils/flags.h"
+
+// PD_DECLARE_bool(use_xft_log_softmax);
+
 
 namespace phi {
 

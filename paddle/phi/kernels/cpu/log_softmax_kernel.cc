@@ -22,7 +22,6 @@
 #include "paddle/phi/kernels/funcs/eigen/eigen_function.h"
 #include "paddle/phi/kernels/funcs/math_function.h"
 
-
 namespace phi {
 
 template <typename T,
@@ -132,6 +131,26 @@ static void xft_compute_log_softmax(const float *input, float *output, int size)
     }
 }
 
+void xft_compute_log_softmax_v2(const float *input, float *output, int size) {
+    float max = input[0];
+#pragma omp parallel for reduction(max : max)
+    for (int i = 1; i < size; i++) {
+        if (input[i] > max) { max = input[i]; }
+    }
+
+    float sum = 0.0;
+#pragma omp parallel for reduction(+ : sum)
+    for (int i = 0; i < size; i++) {
+        sum += std::exp(input[i] - max);
+    }
+
+    float logsum = std::log(sum);
+#pragma omp parallel for
+    for (int i = 0; i < size; i++) {
+        output[i] = input[i] - max - logsum;
+    }
+}
+
 template <typename Context, typename T>
 struct LogSoftmaxFunctor {
   void operator()(const Context& context,
@@ -213,10 +232,18 @@ void LogSoftmaxKernel(const Context& dev_ctx,
     return;
   }
   if (x.numel() != 0) {
-    if(std::is_same<T, float>::value) {
+    if(std::is_same<T, float>::value && x.numel() == x.dims()[rank - 1] && x.numel() % 16 == 0) {
+      printf("enter fast log_softmax, x number: %ld\n", x.numel());
       const float* x_data = reinterpret_cast<const float*>(x.data<float>());
       float* out_data = reinterpret_cast<float*>(out->data<float>());
       xft_compute_log_softmax(x_data, out_data, x.numel());
+
+      // int strip_num = x.dims()[rank - 1];
+      // int skip_num = x.numel() / strip_num;
+      // for(int i = 0; i < x.numel(); i += skip_num) {
+      //   xft_compute_log_softmax(x_data + i, out_data + i, strip_num);
+      // }
+      
     }
     else{
       LogSoftmaxFunctor<Context, T>()(dev_ctx, &x, out, canonical_axis);
