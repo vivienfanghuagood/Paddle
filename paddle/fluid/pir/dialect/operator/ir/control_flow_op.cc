@@ -15,7 +15,8 @@
 #undef GET_OP_LIST
 paddle::dialect::IfOp, paddle::dialect::WhileOp, paddle::dialect::HasElementsOp,
     paddle::dialect::PyLayerOp, paddle::dialect::AssertOp,
-    paddle::dialect::SelectInputOp, paddle::dialect::SelectOutputOp
+    paddle::dialect::SelectInputOp, paddle::dialect::SelectOutputOp,
+    paddle::dialect::TensorRTEngineOp
 #else
 #include "paddle/fluid/pir/dialect/operator/ir/control_flow_op.h"
 
@@ -1233,5 +1234,6 @@ IR_DEFINE_EXPLICIT_TYPE_ID(paddle::dialect::AssertOp)
 IR_DEFINE_EXPLICIT_TYPE_ID(paddle::dialect::PyLayerOp)
 IR_DEFINE_EXPLICIT_TYPE_ID(paddle::dialect::SelectInputOp)
 IR_DEFINE_EXPLICIT_TYPE_ID(paddle::dialect::SelectOutputOp)
+IR_DEFINE_EXPLICIT_TYPE_ID(paddle::dialect::TensorRTEngineOp)
 
 #endif

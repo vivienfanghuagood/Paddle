@@ -20,6 +20,7 @@
 #include "paddle/fluid/pir/dialect/operator/interface/vjp.h"
 #include "paddle/pir/include/core/block.h"
 #include "paddle/pir/include/core/op_base.h"
+#include "paddle/fluid/pir/dialect/operator/ir/tensorrt_engine_op.h"
 
 namespace paddle {
 namespace dialect {
@@ -86,6 +87,8 @@ class PyLayerOp : public pir::Op<PyLayerOp> {
 
   void UpdateOutput();
 };
+
+
 
 ///
 /// \brief The WhileOp is an operation that iterates over a loop body based on a
